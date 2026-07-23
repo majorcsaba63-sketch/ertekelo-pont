@@ -1,0 +1,636 @@
+<!DOCTYPE html>
+<html lang="hu">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
+<title>Nulladik Fázis — Értékelő pont, beüzemelve</title>
+<meta name="description" content="Beüzemelt NFC + QR értékelő pont. Beállítom a céged értékelő linkjét, felprogramozom az eszközt, helyben felszerelem. Kész szolgáltatás, nem egy darab műanyag.">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Manrope:wght@400;500;600;700;800&family=JetBrains+Mono:wght@400;500;700&display=swap" rel="stylesheet">
+<style>
+  :root{
+    --ink:#14181A; --ink-2:#39423F; --muted:#5C6663;
+    --paper:#ffffff; --soft:#F5F7F6; --line:#E1E6E3;
+    --accent:#0E6B55; --accent-d:#0A5241; --accent-soft:#E6F1ED;
+    --gold:#DFA327; --gold-soft:#FBF2DF;
+    --shadow:0 1px 2px rgba(20,24,26,.06), 0 10px 30px rgba(20,24,26,.07);
+    --radius:18px;
+  }
+  *{box-sizing:border-box; touch-action:manipulation;}
+  html,body{margin:0;padding:0;}
+  html{scroll-behavior:smooth;}
+  body{
+    font-family:"Manrope",system-ui,-apple-system,Arial,sans-serif;
+    color:var(--ink); background:var(--paper); line-height:1.55;
+    -webkit-text-size-adjust:100%; -webkit-font-smoothing:antialiased;
+  }
+  img{max-width:100%;display:block}
+  a{color:inherit;text-decoration:none}
+  .wrap{max-width:1140px;margin:0 auto;padding:0 20px}
+  .center{text-align:center}
+  .center .sec-lead{margin-left:auto;margin-right:auto}
+
+  .tbd{
+    font-family:"JetBrains Mono",monospace;font-size:.84em;font-weight:500;
+    border:1px dashed var(--gold);color:#8A6116;background:var(--gold-soft);
+    padding:1px 7px;border-radius:5px;white-space:nowrap;
+  }
+
+  /* ---------- header ---------- */
+  header{
+    position:sticky;top:0;z-index:50;background:rgba(255,255,255,.93);
+    backdrop-filter:saturate(180%) blur(12px);border-bottom:1px solid var(--line);
+  }
+  .nav{display:flex;align-items:center;gap:16px;height:64px}
+  .brand{display:flex;align-items:center;gap:10px;font-weight:800;font-size:17px;letter-spacing:-.3px}
+  .mark{width:26px;height:26px;flex:0 0 auto;border-radius:50%;
+    background:radial-gradient(circle at 34% 28%,#3A423E,#101312);
+    box-shadow:inset 0 0 0 2px var(--gold);}
+  .nav-links{display:flex;gap:22px;margin-left:18px}
+  .nav-links a{color:var(--muted);font-size:14.5px;font-weight:600;padding:6px 2px;border-bottom:2px solid transparent}
+  .nav-links a:hover{color:var(--ink);border-color:var(--accent)}
+  .spacer{flex:1}
+  .lang{display:flex;background:var(--soft);border:1px solid var(--line);border-radius:999px;padding:3px;gap:2px}
+  .lang button{border:0;background:transparent;cursor:pointer;font:inherit;font-size:13px;font-weight:700;
+    color:var(--muted);padding:6px 13px;border-radius:999px;letter-spacing:.4px}
+  .lang button.active{background:var(--accent);color:#fff}
+
+  /* ---------- hero ---------- */
+  .hero{padding:52px 0 44px;overflow:hidden}
+  .hero-grid{display:grid;grid-template-columns:1.06fr .94fr;gap:48px;align-items:center}
+  .pill{display:inline-flex;align-items:center;gap:8px;background:var(--soft);border:1px solid var(--line);
+    color:var(--muted);font-size:13px;font-weight:700;padding:7px 14px;border-radius:999px;margin-bottom:18px}
+  .pill .dot{width:8px;height:8px;border-radius:50%;background:var(--accent)}
+  h1{font-size:clamp(31px,5vw,53px);line-height:1.05;letter-spacing:-1.3px;margin:0 0 16px;font-weight:800}
+  h1 .hl{color:var(--accent)}
+  .lead{font-size:clamp(16px,2.2vw,18.5px);color:var(--muted);max-width:560px;margin:0 0 26px}
+  .cta-row{display:flex;flex-wrap:wrap;gap:12px}
+  .btn{display:inline-flex;align-items:center;justify-content:center;gap:9px;font-weight:700;font-size:15.5px;
+    padding:13px 24px;border-radius:999px;cursor:pointer;border:1.5px solid transparent;
+    transition:transform .12s ease,background .15s ease,color .15s ease,border-color .15s ease}
+  .btn:active{transform:translateY(1px)}
+  .btn-primary{background:var(--accent);color:#fff}
+  .btn-primary:hover{background:var(--accent-d)}
+  .btn-ghost{background:#fff;color:var(--ink);border-color:var(--line)}
+  .btn-ghost:hover{border-color:var(--accent);color:var(--accent-d)}
+  .trust{margin-top:22px;font-size:14px;color:var(--muted);display:flex;align-items:center;gap:9px;flex-wrap:wrap}
+  .trust .strow{display:flex;gap:2px}
+  .trust svg{width:16px;height:16px;fill:var(--gold)}
+
+  /* hero visual */
+  .stage{position:relative;display:flex;align-items:center;justify-content:center;min-height:380px}
+  .disc{position:relative;width:min(288px,66vw);aspect-ratio:1;border-radius:50%;border:0;padding:0;cursor:pointer;
+    background:radial-gradient(circle at 34% 28%,#3A423E 0%,#171C1A 56%,#0A0D0C 100%);
+    box-shadow:0 26px 48px -18px rgba(20,24,26,.5), inset 0 1px 0 rgba(255,255,255,.14);
+    display:grid;place-items:center;transition:transform .3s cubic-bezier(.2,.8,.3,1)}
+  .disc:hover{transform:scale(1.03)}
+  .disc:active{transform:scale(.97)}
+  .disc:focus-visible{outline:3px solid var(--accent);outline-offset:6px}
+  .disc-face{display:grid;place-items:center;gap:13px;text-align:center;pointer-events:none}
+  .disc-face .strow{display:flex;gap:6px}
+  .disc-face .strow svg{width:19px;height:19px;fill:none;stroke:var(--gold);stroke-width:1.6}
+  .disc-sub{font-weight:800;font-size:18px;color:#F1EFE9;letter-spacing:-.2px}
+  .disc-tag{font-family:"JetBrains Mono",monospace;font-size:10.5px;letter-spacing:.16em;text-transform:uppercase;color:#A9B2AE}
+  .ripple{position:absolute;inset:0;border-radius:50%;border:1.5px solid var(--gold);opacity:0;pointer-events:none}
+  .disc.tapped .ripple{animation:ring .9s ease-out}
+  @keyframes ring{0%{opacity:.85;transform:scale(1)}100%{opacity:0;transform:scale(1.5)}}
+  .phone{position:absolute;right:0;bottom:8px;width:146px;background:#fff;border:1.5px solid var(--line);
+    border-radius:20px;padding:14px 12px;box-shadow:0 18px 34px -14px rgba(20,24,26,.34);
+    opacity:0;transform:translateY(14px) rotate(4deg);transition:opacity .4s ease,transform .4s cubic-bezier(.2,.8,.3,1);pointer-events:none}
+  .stage.open .phone{opacity:1;transform:translateY(0) rotate(4deg)}
+  .phone .p1{font-family:"JetBrains Mono",monospace;font-size:9.5px;letter-spacing:.1em;text-transform:uppercase;color:var(--muted)}
+  .phone .p2{font-weight:800;font-size:13.5px;margin:5px 0 9px;line-height:1.2}
+  .phone .strow{display:flex;gap:3px}
+  .phone .strow svg{width:15px;height:15px;fill:var(--gold)}
+  .phone .p3{margin-top:11px;background:var(--accent);color:#fff;border-radius:999px;text-align:center;font-size:11px;font-weight:700;padding:6px}
+  .taphint{margin-top:16px;font-family:"JetBrains Mono",monospace;font-size:11px;letter-spacing:.1em;
+    text-transform:uppercase;color:var(--muted);text-align:center}
+
+  /* ---------- sections ---------- */
+  section{padding:56px 0}
+  .sec-soft{background:var(--soft);border-top:1px solid var(--line);border-bottom:1px solid var(--line)}
+  .eyebrow{font-family:"JetBrains Mono",monospace;font-size:12px;font-weight:700;letter-spacing:.14em;
+    text-transform:uppercase;color:var(--accent);margin:0 0 10px}
+  h2{font-size:clamp(24px,3.5vw,36px);letter-spacing:-.7px;margin:0 0 12px;font-weight:800;line-height:1.1}
+  .sec-lead{color:var(--muted);font-size:16.5px;max-width:640px;margin:0 0 34px}
+
+  /* ---------- product cards ---------- */
+  .cards{display:grid;grid-template-columns:repeat(2,1fr);gap:24px;max-width:800px;margin:0 auto}
+  .card{background:#fff;border:1px solid var(--line);border-radius:var(--radius);overflow:hidden;
+    box-shadow:var(--shadow);display:flex;flex-direction:column;transition:transform .15s ease,box-shadow .15s ease}
+  .card:hover{transform:translateY(-4px);box-shadow:0 6px 14px rgba(20,24,26,.1),0 18px 42px rgba(20,24,26,.12)}
+  .card-media{background:linear-gradient(160deg,#EEF3F1,#FAFBFB);padding:26px;display:flex;align-items:center;justify-content:center;min-height:216px}
+  .pd{width:150px;height:150px;border-radius:50%;display:grid;place-items:center;gap:8px;
+    box-shadow:0 14px 26px -10px rgba(20,24,26,.42), inset 0 1px 0 rgba(255,255,255,.16)}
+  .pd .strow{display:flex;gap:4px}
+  .pd .strow svg{width:14px;height:14px;fill:none;stroke-width:1.7}
+  .pd .lbl{font-weight:800;font-size:13.5px;letter-spacing:-.1px}
+  .pd-black{background:radial-gradient(circle at 34% 28%,#3A423E,#0C0F0E)}
+  .pd-black .strow svg{stroke:var(--gold)} .pd-black .lbl{color:#F1EFE9}
+  .pd-color{background:radial-gradient(circle at 34% 28%,#1B8E71,#0A5241)}
+  .pd-color .strow svg{stroke:#FFE9B8} .pd-color .lbl{color:#F2FBF8}
+  .card-body{padding:20px 22px 24px;display:flex;flex-direction:column;flex:1}
+  .tag{align-self:flex-start;font-family:"JetBrains Mono",monospace;font-size:11px;font-weight:700;letter-spacing:.08em;
+    text-transform:uppercase;padding:4px 10px;border-radius:999px;margin-bottom:12px}
+  .tag.a{background:var(--accent-soft);color:var(--accent-d)}
+  .tag.b{background:#EBEDEC;color:#3C4340}
+  .card h3{font-size:19px;margin:0 0 6px;letter-spacing:-.3px}
+  .card .desc{color:var(--muted);font-size:14px;margin:0 0 14px}
+  .feat{list-style:none;padding:0;margin:0 0 18px;display:flex;flex-direction:column;gap:8px}
+  .feat li{display:flex;align-items:flex-start;gap:9px;font-size:13.8px;color:var(--ink-2)}
+  .feat li .ck{flex:0 0 auto;width:17px;height:17px;margin-top:1px}
+  .price-row{display:flex;align-items:baseline;gap:8px;margin-top:auto;padding-top:10px;border-top:1px solid var(--line)}
+  .price{font-size:20px;font-weight:800;letter-spacing:-.4px}
+  .price-row small{font-size:13px;font-weight:600;color:var(--muted)}
+  .card .btn{width:100%;margin-top:14px}
+
+  /* ---------- steps ---------- */
+  .steps{display:grid;grid-template-columns:repeat(3,1fr);gap:22px;margin-top:14px}
+  .step{background:#fff;border:1px solid var(--line);border-radius:var(--radius);padding:28px 22px 24px;box-shadow:var(--shadow);position:relative}
+  .step .num{position:absolute;top:-15px;left:22px;width:34px;height:34px;border-radius:50%;background:var(--accent);
+    color:#fff;font-weight:800;display:flex;align-items:center;justify-content:center;font-size:15px}
+  .step .ic{width:42px;height:42px;margin:6px 0 12px}
+  .step h4{margin:0 0 6px;font-size:17px}
+  .step p{margin:0;color:var(--muted);font-size:14px}
+  .step .strow{display:flex;gap:3px;margin:10px 0 12px}
+  .step .strow svg{width:21px;height:21px;fill:var(--gold)}
+
+  /* ---------- benefits ---------- */
+  .benefits{display:grid;grid-template-columns:repeat(4,1fr);gap:22px;margin-top:14px}
+  .benefit{background:#fff;border:1px solid var(--line);border-radius:var(--radius);padding:22px}
+  .bic{width:44px;height:44px;border-radius:12px;background:var(--accent-soft);display:grid;place-items:center;margin-bottom:13px}
+  .benefit h4{margin:0 0 6px;font-size:16px}
+  .benefit p{margin:0;color:var(--muted);font-size:13.8px}
+
+  /* ---------- rules band ---------- */
+  .rules{background:var(--ink);color:#E9ECEA;border-radius:24px;padding:clamp(28px,5vw,48px)}
+  .rules .eyebrow{color:var(--gold)}
+  .rules h2{color:#F4F6F5;margin-bottom:18px}
+  .rules p{color:#B4BCB9;max-width:64ch;margin:0 0 13px;font-size:16px}
+  .rules p:last-child{margin-bottom:0}
+
+  /* ---------- contact ---------- */
+  .cta-band{background:linear-gradient(160deg,var(--accent-d),#083A2E);color:#fff;border-radius:26px;
+    padding:clamp(30px,5vw,48px);text-align:center;max-width:780px;margin:0 auto}
+  .cta-band h2{color:#fff}
+  .cta-band > p{color:#BFD6CE;font-size:16px;max-width:52ch;margin:0 auto 22px}
+  .num-btn{display:inline-flex;align-items:center;gap:12px;background:#fff;color:var(--ink);border:0;
+    border-radius:16px;padding:15px 24px;margin:4px auto 8px;box-shadow:0 8px 22px rgba(0,0,0,.2);
+    font-weight:800;font-size:clamp(19px,4.4vw,27px);letter-spacing:.4px;cursor:pointer}
+  .num-btn .pic{width:28px;height:28px;flex:0 0 auto}
+  .save-hint{color:#BFD6CE;font-size:13.5px;margin:2px 0 22px}
+  .channels{display:flex;flex-wrap:wrap;gap:10px;justify-content:center}
+  .cbtn{display:inline-flex;align-items:center;gap:8px;background:rgba(255,255,255,.1);
+    border:1px solid rgba(255,255,255,.2);color:#fff;border-radius:999px;padding:10px 18px;
+    font-size:14.5px;font-weight:700;cursor:pointer;transition:background .15s}
+  .cbtn:hover{background:rgba(255,255,255,.19)}
+  .cbtn svg{width:20px;height:20px;flex:0 0 auto}
+
+  /* ---------- footer ---------- */
+  footer{border-top:1px solid var(--line);padding:34px 0 46px;color:var(--muted);font-size:13px;line-height:1.75}
+  .foot{display:flex;flex-wrap:wrap;gap:14px;justify-content:space-between;align-items:flex-start}
+  .fbar{display:inline-block;width:34px;height:5px;border-radius:5px;background:var(--gold);margin-bottom:8px}
+
+  @media (max-width:980px){
+    .hero-grid{grid-template-columns:1fr;gap:36px}
+    .steps{grid-template-columns:1fr}
+    .benefits{grid-template-columns:1fr 1fr}
+    .nav-links{display:none}
+  }
+  @media (max-width:620px){
+    .cards{grid-template-columns:1fr}
+    .benefits{grid-template-columns:1fr}
+    .stage{min-height:330px}
+    .phone{width:128px;bottom:-4px}
+  }
+  @media (prefers-reduced-motion:reduce){
+    *{animation:none!important;transition:none!important}
+    html{scroll-behavior:auto}
+  }
+</style>
+</head>
+<body>
+
+<header>
+  <div class="wrap nav">
+    <div class="brand"><span class="mark"></span> Nulladik Fázis</div>
+    <nav class="nav-links">
+      <a href="#products" data-i18n="nav_products">Csomagok</a>
+      <a href="#how" data-i18n="nav_how">Hogyan működik</a>
+      <a href="#benefits" data-i18n="nav_benefits">Előnyök</a>
+      <a href="#contact" data-i18n="nav_contact">Kapcsolat</a>
+    </nav>
+    <span class="spacer"></span>
+    <div class="lang">
+      <button data-lang="hu" class="active">HU</button>
+      <button data-lang="en">EN</button>
+    </div>
+  </div>
+</header>
+
+<!-- HERO -->
+<section class="hero">
+  <div class="wrap hero-grid">
+    <div>
+      <span class="pill"><span class="dot"></span><span data-i18n="hero_pill">Helyszíni beüzemelés · NFC + QR</span></span>
+      <h1><span data-i18n="hero_h1a">Több </span><span class="hl" data-i18n="hero_h1b">Google-értékelés</span><span data-i18n="hero_h1c"> — kulcsrakészen beüzemelve.</span></h1>
+      <p class="lead" data-i18n="hero_lead">Nem egy matricát kapsz. Megkeresem a céged nyilvános üzleti profilját, felprogramozom rá az NFC-eszközt, leellenőrzöm, hogy tényleg a te oldalad nyílik, és helyben felszerelem. Egy működő szolgáltatásért fizetsz, nem egy darab műanyagért.</p>
+      <div class="cta-row">
+        <a class="btn btn-primary" href="#products" data-i18n="hero_cta1">Csomagok</a>
+        <a class="btn btn-ghost" href="#contact" data-i18n="hero_cta2">Kapcsolatfelvétel</a>
+      </div>
+      <div class="trust">
+        <span class="strow" aria-hidden="true">
+          <svg viewBox="0 0 24 24"><path d="M12 2.5l2.9 5.9 6.5.9-4.7 4.6 1.1 6.5L12 21.3 6.1 20.9l1.1-6.5L2.5 9.8l6.5-.9z"/></svg>
+          <svg viewBox="0 0 24 24"><path d="M12 2.5l2.9 5.9 6.5.9-4.7 4.6 1.1 6.5L12 21.3 6.1 20.9l1.1-6.5L2.5 9.8l6.5-.9z"/></svg>
+          <svg viewBox="0 0 24 24"><path d="M12 2.5l2.9 5.9 6.5.9-4.7 4.6 1.1 6.5L12 21.3 6.1 20.9l1.1-6.5L2.5 9.8l6.5-.9z"/></svg>
+          <svg viewBox="0 0 24 24"><path d="M12 2.5l2.9 5.9 6.5.9-4.7 4.6 1.1 6.5L12 21.3 6.1 20.9l1.1-6.5L2.5 9.8l6.5-.9z"/></svg>
+          <svg viewBox="0 0 24 24"><path d="M12 2.5l2.9 5.9 6.5.9-4.7 4.6 1.1 6.5L12 21.3 6.1 20.9l1.1-6.5L2.5 9.8l6.5-.9z"/></svg>
+        </span>
+        <span data-i18n="hero_trust">Nincs app, nincs havidíj, nincs regisztráció.</span>
+      </div>
+    </div>
+
+    <div>
+      <div class="stage" id="stage">
+        <button class="disc" id="disc" aria-label="Koppints a korongra">
+          <span class="ripple"></span>
+          <span class="disc-face">
+            <span class="strow" aria-hidden="true">
+              <svg viewBox="0 0 24 24"><polygon points="12,2 15,9 22,9 16,14 18,21 12,17 6,21 8,14 2,9 9,9"/></svg>
+              <svg viewBox="0 0 24 24"><polygon points="12,2 15,9 22,9 16,14 18,21 12,17 6,21 8,14 2,9 9,9"/></svg>
+              <svg viewBox="0 0 24 24"><polygon points="12,2 15,9 22,9 16,14 18,21 12,17 6,21 8,14 2,9 9,9"/></svg>
+              <svg viewBox="0 0 24 24"><polygon points="12,2 15,9 22,9 16,14 18,21 12,17 6,21 8,14 2,9 9,9"/></svg>
+              <svg viewBox="0 0 24 24"><polygon points="12,2 15,9 22,9 16,14 18,21 12,17 6,21 8,14 2,9 9,9"/></svg>
+            </span>
+            <span class="disc-sub" data-i18n="disc_sub">Írj véleményt</span>
+            <span class="disc-tag" data-i18n="disc_tag">Koppints ide</span>
+          </span>
+        </button>
+        <div class="phone" aria-hidden="true">
+          <div class="p1" data-i18n="ph_open">Megnyílik</div>
+          <div class="p2"><span class="tbd">[Cégnév]</span></div>
+          <div class="strow">
+            <svg viewBox="0 0 24 24"><path d="M12 2.5l2.9 5.9 6.5.9-4.7 4.6 1.1 6.5L12 21.3 6.1 20.9l1.1-6.5L2.5 9.8l6.5-.9z"/></svg>
+            <svg viewBox="0 0 24 24"><path d="M12 2.5l2.9 5.9 6.5.9-4.7 4.6 1.1 6.5L12 21.3 6.1 20.9l1.1-6.5L2.5 9.8l6.5-.9z"/></svg>
+            <svg viewBox="0 0 24 24"><path d="M12 2.5l2.9 5.9 6.5.9-4.7 4.6 1.1 6.5L12 21.3 6.1 20.9l1.1-6.5L2.5 9.8l6.5-.9z"/></svg>
+            <svg viewBox="0 0 24 24"><path d="M12 2.5l2.9 5.9 6.5.9-4.7 4.6 1.1 6.5L12 21.3 6.1 20.9l1.1-6.5L2.5 9.8l6.5-.9z"/></svg>
+            <svg viewBox="0 0 24 24"><path d="M12 2.5l2.9 5.9 6.5.9-4.7 4.6 1.1 6.5L12 21.3 6.1 20.9l1.1-6.5L2.5 9.8l6.5-.9z"/></svg>
+          </div>
+          <div class="p3" data-i18n="ph_btn">Vélemény írása</div>
+        </div>
+      </div>
+      <p class="taphint" data-i18n="taphint">Bemutató — koppints a korongra</p>
+    </div>
+  </div>
+</section>
+
+<!-- PRODUCTS -->
+<section id="products" class="sec-soft">
+  <div class="wrap center">
+    <p class="eyebrow" data-i18n="prod_eyebrow">A szolgáltatás</p>
+    <h2 data-i18n="prod_h2">Mindent beüzemelek helyetted</h2>
+    <p class="sec-lead" data-i18n="prod_lead">Két változat, ugyanaz a szolgáltatás — csak a korong néz ki másképp. Az ár tartalmazza az eszközt és a teljes beüzemelést.</p>
+  </div>
+  <div class="wrap">
+    <div class="cards">
+      <div class="card">
+        <div class="card-media">
+          <div class="pd pd-black">
+            <span class="strow" aria-hidden="true">
+              <svg viewBox="0 0 24 24" fill="none"><polygon points="12,2 15,9 22,9 16,14 18,21 12,17 6,21 8,14 2,9 9,9"/></svg>
+              <svg viewBox="0 0 24 24" fill="none"><polygon points="12,2 15,9 22,9 16,14 18,21 12,17 6,21 8,14 2,9 9,9"/></svg>
+              <svg viewBox="0 0 24 24" fill="none"><polygon points="12,2 15,9 22,9 16,14 18,21 12,17 6,21 8,14 2,9 9,9"/></svg>
+              <svg viewBox="0 0 24 24" fill="none"><polygon points="12,2 15,9 22,9 16,14 18,21 12,17 6,21 8,14 2,9 9,9"/></svg>
+              <svg viewBox="0 0 24 24" fill="none"><polygon points="12,2 15,9 22,9 16,14 18,21 12,17 6,21 8,14 2,9 9,9"/></svg>
+            </span>
+            <span class="lbl" data-i18n="disc_sub">Írj véleményt</span>
+          </div>
+        </div>
+        <div class="card-body">
+          <span class="tag b" data-i18n="p_black_tag">Alap</span>
+          <h3 data-i18n="p_black_name">Értékelő korong · Fekete</h3>
+          <p class="desc" data-i18n="p_black_desc">Matt fekete, öntapadós korong, kb. 10 cm átmérő. Diszkrét, jól mutat sötét pulton és letisztult belsőben.</p>
+          <ul class="feat" data-feat="black"></ul>
+          <div class="price-row"><span class="price"><span class="tbd">[ÁR]</span></span><small data-i18n="price_unit">· beüzemelve</small></div>
+          <a class="btn btn-primary" href="#contact" data-i18n="p_cta">Beüzemelést kérek</a>
+        </div>
+      </div>
+
+      <div class="card">
+        <div class="card-media">
+          <div class="pd pd-color">
+            <span class="strow" aria-hidden="true">
+              <svg viewBox="0 0 24 24" fill="none"><polygon points="12,2 15,9 22,9 16,14 18,21 12,17 6,21 8,14 2,9 9,9"/></svg>
+              <svg viewBox="0 0 24 24" fill="none"><polygon points="12,2 15,9 22,9 16,14 18,21 12,17 6,21 8,14 2,9 9,9"/></svg>
+              <svg viewBox="0 0 24 24" fill="none"><polygon points="12,2 15,9 22,9 16,14 18,21 12,17 6,21 8,14 2,9 9,9"/></svg>
+              <svg viewBox="0 0 24 24" fill="none"><polygon points="12,2 15,9 22,9 16,14 18,21 12,17 6,21 8,14 2,9 9,9"/></svg>
+              <svg viewBox="0 0 24 24" fill="none"><polygon points="12,2 15,9 22,9 16,14 18,21 12,17 6,21 8,14 2,9 9,9"/></svg>
+            </span>
+            <span class="lbl" data-i18n="disc_sub">Írj véleményt</span>
+          </div>
+        </div>
+        <div class="card-body">
+          <span class="tag a" data-i18n="p_color_tag">Feltűnő</span>
+          <h3 data-i18n="p_color_name">Értékelő korong · Színes</h3>
+          <p class="desc" data-i18n="p_color_desc">Ugyanaz a technológia, színes kivitelben. Akkor jó, ha azt akarod, hogy a vendég észrevegye a pulton.</p>
+          <ul class="feat" data-feat="color"></ul>
+          <div class="price-row"><span class="price"><span class="tbd">[ÁR]</span></span><small data-i18n="price_unit">· beüzemelve</small></div>
+          <a class="btn btn-primary" href="#contact" data-i18n="p_cta">Beüzemelést kérek</a>
+        </div>
+      </div>
+    </div>
+    <p class="center" style="color:var(--muted);font-size:12.8px;margin-top:18px" data-i18n="price_note">* Az ár tartalmazza az eszközt és a teljes beüzemelést. Több telephelyre kedvezmény kérésre.</p>
+  </div>
+</section>
+
+<!-- HOW -->
+<section id="how">
+  <div class="wrap center">
+    <p class="eyebrow" data-i18n="how_eyebrow">Hogyan működik</p>
+    <h2 data-i18n="how_h2">Értékelés három másodperc alatt</h2>
+    <p class="sec-lead" data-i18n="how_lead">Nincs applikáció, nem kell címet begépelni — egy mozdulat, és a vendég az értékelő oldaladon van.</p>
+  </div>
+  <div class="wrap">
+    <div class="steps">
+      <div class="step"><div class="num">1</div>
+        <svg class="ic" viewBox="0 0 48 48" fill="none"><rect x="14" y="6" width="20" height="36" rx="4" stroke="#0E6B55" stroke-width="3"/><path d="M24 34h.02" stroke="#0E6B55" stroke-width="4" stroke-linecap="round"/><path d="M38 16c3 3 3 9 0 12M42 12c5 5 5 15 0 20" stroke="#DFA327" stroke-width="3" stroke-linecap="round"/></svg>
+        <h4 data-i18n="s1_h">Koppint vagy beolvas</h4>
+        <p data-i18n="s1_p">A vendég a korongra tartja a telefont (NFC), vagy beolvassa a QR-kódot a kamerával.</p>
+      </div>
+      <div class="step"><div class="num">2</div>
+        <svg class="ic" viewBox="0 0 48 48" fill="none"><circle cx="24" cy="24" r="18" stroke="#0E6B55" stroke-width="3"/><path d="M16 24l6 6 12-12" stroke="#0E6B55" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"/></svg>
+        <h4 data-i18n="s2_h">Nyílik az oldalad</h4>
+        <p data-i18n="s2_p">Azonnal az értékelő oldalad nyílik meg a böngészőben — kerülőút nélkül.</p>
+      </div>
+      <div class="step"><div class="num">3</div>
+        <div class="strow" aria-hidden="true">
+          <svg viewBox="0 0 24 24"><path d="M12 2.5l2.9 5.9 6.5.9-4.7 4.6 1.1 6.5L12 21.3 6.1 20.9l1.1-6.5L2.5 9.8l6.5-.9z"/></svg>
+          <svg viewBox="0 0 24 24"><path d="M12 2.5l2.9 5.9 6.5.9-4.7 4.6 1.1 6.5L12 21.3 6.1 20.9l1.1-6.5L2.5 9.8l6.5-.9z"/></svg>
+          <svg viewBox="0 0 24 24"><path d="M12 2.5l2.9 5.9 6.5.9-4.7 4.6 1.1 6.5L12 21.3 6.1 20.9l1.1-6.5L2.5 9.8l6.5-.9z"/></svg>
+          <svg viewBox="0 0 24 24"><path d="M12 2.5l2.9 5.9 6.5.9-4.7 4.6 1.1 6.5L12 21.3 6.1 20.9l1.1-6.5L2.5 9.8l6.5-.9z"/></svg>
+          <svg viewBox="0 0 24 24"><path d="M12 2.5l2.9 5.9 6.5.9-4.7 4.6 1.1 6.5L12 21.3 6.1 20.9l1.1-6.5L2.5 9.8l6.5-.9z"/></svg>
+        </div>
+        <h4 data-i18n="s3_h">Ír egy véleményt</h4>
+        <p data-i18n="s3_p">Aki amúgy is írna, azt már nem állítja meg a keresgélés. Ennyi a különbség.</p>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- BENEFITS -->
+<section id="benefits" class="sec-soft">
+  <div class="wrap center">
+    <p class="eyebrow" data-i18n="ben_eyebrow">Miért így</p>
+    <h2 data-i18n="ben_h2">Egyszerű. Azonnali. Nem kell hozzáértés.</h2>
+  </div>
+  <div class="wrap">
+    <div class="benefits">
+      <div class="benefit">
+        <div class="bic"><svg width="24" height="24" viewBox="0 0 24 24" fill="none"><path d="M13 2L4 14h6l-1 8 9-12h-6l1-8z" fill="#0E6B55"/></svg></div>
+        <h4 data-i18n="b1_h">Én állítom be</h4><p data-i18n="b1_p">Helyszíni felszerelés, a saját értékelő oldaladra programozva. Neked nem kell fiókot bogarászni.</p>
+      </div>
+      <div class="benefit">
+        <div class="bic"><svg width="24" height="24" viewBox="0 0 24 24" fill="none"><path d="M12 2a10 10 0 100 20 10 10 0 000-20zm-1 15l-4-4 1.4-1.4L11 14.2l5.6-5.6L18 10z" fill="#0E6B55"/></svg></div>
+        <h4 data-i18n="b2_h">Nem kell app</h4><p data-i18n="b2_p">A telefon böngészőjében fut, letöltés és regisztráció nélkül.</p>
+      </div>
+      <div class="benefit">
+        <div class="bic"><svg width="24" height="24" viewBox="0 0 24 24" fill="none"><path d="M12 6V3L8 7l4 4V8a4 4 0 11-4 4H6a6 6 0 106-6z" fill="#0E6B55"/></svg></div>
+        <h4 data-i18n="b3_h">A link módosítható</h4><p data-i18n="b3_p">Ha változik a profilod, újraírom a korongot — <span class="tbd">[feltételek]</span>.</p>
+      </div>
+      <div class="benefit">
+        <div class="bic"><svg width="24" height="24" viewBox="0 0 24 24" fill="none"><path d="M17 2H7a2 2 0 00-2 2v16a2 2 0 002 2h10a2 2 0 002-2V4a2 2 0 00-2-2zm-5 19a1.3 1.3 0 110-2.6 1.3 1.3 0 010 2.6zM17 17H7V5h10z" fill="#0E6B55"/></svg></div>
+        <h4 data-i18n="b4_h">Minden telefonnal</h4><p data-i18n="b4_p">NFC vagy QR — iPhone és Android, a régebbi készülékek is.</p>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- RULES -->
+<section>
+  <div class="wrap">
+    <div class="rules">
+      <p class="eyebrow" data-i18n="rules_eyebrow">Amit fontos tudni</p>
+      <h2 data-i18n="rules_h2">Ezt nem szabad szelektíven használni — és ezt előre elmondom.</h2>
+      <p data-i18n="rules_p1">A Google szabályai tiltják, hogy csak a válogatott vendégeknek add oda az értékelő linket, vagy hogy előre kitöltött csillagszámmal terelj. Ezt hívják review gatingnek, és a te profilodat sújtja: törölt értékelések, visszaesés a találatokban, rosszabb esetben felfüggesztés.</p>
+      <p data-i18n="rules_p2">Ezért a korong mindenki számára egyformán elérhető helyre való — pultra, asztalra, a bejárathoz. Kitéve, láthatóan. Így nem kockáztatsz semmit.</p>
+      <p data-i18n="rules_p3">Ezt a tájékoztatót minden vevőnek írásban adom át, fizetés előtt. Nem apró betű: ez a feltétele annak, hogy a dolog hosszú távon is működjön neked.</p>
+    </div>
+  </div>
+</section>
+
+<!-- CONTACT -->
+<section id="contact">
+  <div class="wrap">
+    <div class="cta-band">
+      <p class="eyebrow" style="color:var(--gold)" data-i18n="cta_eyebrow">Kapcsolat</p>
+      <h2 data-i18n="cta_h2">Kérd a beüzemelést</h2>
+      <p data-i18n="cta_p">Elérsz WhatsAppon, Viberen vagy SMS-ben — vagy e-mailben. Koppints a számra, és elmentheted a névjegyeid közé.</p>
+
+      <a id="c-num" class="num-btn">
+        <svg class="pic" viewBox="0 0 24 24" fill="none"><path d="M6.6 10.8a15 15 0 006.6 6.6l2.2-2.2a1 1 0 011-.24 11 11 0 003.5.56 1 1 0 011 1V20a1 1 0 01-1 1A17 17 0 013 4a1 1 0 011-1h3.5a1 1 0 011 1 11 11 0 00.56 3.5 1 1 0 01-.24 1l-2.2 2.3z" fill="#0E6B55"/></svg>
+        <span id="c-num-txt">+36 …</span>
+      </a>
+      <div class="save-hint" data-i18n="save_hint">Koppints a számra → mentsd el névjegyként (iOS és Android).</div>
+
+      <div class="channels">
+        <a id="c-wa" class="cbtn" target="_blank" rel="noopener">
+          <svg viewBox="0 0 24 24" fill="none"><path d="M12 2a10 10 0 00-8.6 15l-1.3 4.7 4.8-1.3A10 10 0 1012 2z" fill="#25D366"/><path d="M8.3 7.3c-.2-.5-.4-.5-.6-.5h-.5c-.2 0-.5.1-.7.3-.3.3-1 .9-1 2.2s1 2.6 1.2 2.8c.1.2 2 3.1 4.9 4.2 2.4 1 2.9.8 3.4.7.5 0 1.6-.6 1.8-1.3.2-.6.2-1.2.2-1.3-.1-.1-.3-.2-.6-.3l-2-1c-.3-.1-.5-.1-.7.1l-.7.9c-.1.2-.3.2-.5.1-.3-.1-1.2-.4-2.3-1.4-.8-.7-1.4-1.7-1.5-2-.1-.2 0-.4.1-.5l.4-.5c.1-.2.2-.3.3-.5 0-.2 0-.3-.1-.5l-.9-2z" fill="#fff"/></svg>
+          <span>WhatsApp</span>
+        </a>
+        <a id="c-viber" class="cbtn">
+          <svg viewBox="0 0 24 24" fill="none"><path d="M12 2C6.9 2 3 5.3 3 10c0 2.4 1.1 4.5 3 5.9V21l3.3-2c.9.2 1.8.3 2.7.3 5.1 0 9-3.3 9-8s-3.9-9.6-9-9.6z" fill="#7360F2"/></svg>
+          <span>Viber</span>
+        </a>
+        <a id="c-msg" class="cbtn">
+          <svg viewBox="0 0 24 24" fill="none"><path d="M12 3C6.5 3 2 6.6 2 11c0 2.5 1.4 4.7 3.6 6.1-.2 1-.8 2.3-1.6 3.4 1.6-.3 3.4-1 4.6-1.8 1 .2 2.1.3 3.4.3 5.5 0 10-3.6 10-8S17.5 3 12 3z" fill="#34DA50"/></svg>
+          <span>SMS</span>
+        </a>
+        <a id="c-call" class="cbtn">
+          <svg viewBox="0 0 24 24" fill="none"><path d="M6.6 10.8a15 15 0 006.6 6.6l2.2-2.2a1 1 0 011-.24 11 11 0 003.5.56 1 1 0 011 1V20a1 1 0 01-1 1A17 17 0 013 4a1 1 0 011-1h3.5a1 1 0 011 1 11 11 0 00.56 3.5 1 1 0 01-.24 1l-2.2 2.3z" fill="#fff"/></svg>
+          <span data-i18n="ch_call">Hívás</span>
+        </a>
+        <a id="c-mail" class="cbtn">
+          <svg viewBox="0 0 24 24" fill="none"><rect x="3" y="5" width="18" height="14" rx="2.5" fill="#DFA327"/><path d="M4 7l8 5.5L20 7" stroke="#fff" stroke-width="1.6" fill="none" stroke-linecap="round"/></svg>
+          <span>E-mail</span>
+        </a>
+      </div>
+    </div>
+  </div>
+</section>
+
+<footer>
+  <div class="wrap">
+    <span class="fbar"></span>
+    <div class="foot">
+      <div>
+        <strong>Major Csaba e.v. — Nulladik Fázis</strong><br>
+        Nyilvántartási szám: 62479703 · Adószám: 92160965-1-26<br>
+        6724 Szeged, Rókusi körút 1. · Alanyi adómentes, az árak <span class="tbd">[ÁFA-státusz szövege]</span>
+      </div>
+      <div style="max-width:44ch" data-i18n="foot_right">Ez a szolgáltatás nem a Google terméke, és nem áll kapcsolatban a Google LLC-vel. A „Google” a Google LLC bejegyzett védjegye, itt kizárólag a szolgáltatás leírására hivatkozunk rá.</div>
+    </div>
+  </div>
+</footer>
+
+<script>
+/* ============================================================
+   KAPCSOLAT — CSAK EZT A BLOKKOT KELL ÁTÍRNI.
+   Az 'e164' nemzetközi formátum, a + után csak számjegyek.
+   ============================================================ */
+const CONTACT = {
+  display: "+36 XX XXX XXXX",          // <-- ez jelenik meg az oldalon
+  e164:    "+36XXXXXXXXX",             // <-- IDE ÍRD A SAJÁT SZÁMOD
+  email:   "email@pelda.hu",           // <-- IDE AZ ÜZLETI EMAILED
+  name:    "Nulladik Fázis – Major Csaba"
+};
+
+const I18N = {
+  hu:{
+    _lang:"hu",
+    nav_products:"Csomagok", nav_how:"Hogyan működik", nav_benefits:"Előnyök", nav_contact:"Kapcsolat",
+    hero_pill:"Helyszíni beüzemelés · NFC + QR",
+    hero_h1a:"Több ", hero_h1b:"Google-értékelés", hero_h1c:" — kulcsrakészen beüzemelve.",
+    hero_lead:"Nem egy matricát kapsz. Megkeresem a céged nyilvános üzleti profilját, felprogramozom rá az NFC-eszközt, leellenőrzöm, hogy tényleg a te oldalad nyílik, és helyben felszerelem. Egy működő szolgáltatásért fizetsz, nem egy darab műanyagért.",
+    hero_cta1:"Csomagok", hero_cta2:"Kapcsolatfelvétel",
+    hero_trust:"Nincs app, nincs havidíj, nincs regisztráció.",
+    disc_sub:"Írj véleményt", disc_tag:"Koppints ide", taphint:"Bemutató — koppints a korongra",
+    ph_open:"Megnyílik", ph_btn:"Vélemény írása",
+    prod_eyebrow:"A szolgáltatás", prod_h2:"Mindent beüzemelek helyetted",
+    prod_lead:"Két változat, ugyanaz a szolgáltatás — csak a korong néz ki másképp. Az ár tartalmazza az eszközt és a teljes beüzemelést.",
+    p_black_tag:"Alap", p_black_name:"Értékelő korong · Fekete",
+    p_black_desc:"Matt fekete, öntapadós korong, kb. 10 cm átmérő. Diszkrét, jól mutat sötét pulton és letisztult belsőben.",
+    p_color_tag:"Feltűnő", p_color_name:"Értékelő korong · Színes",
+    p_color_desc:"Ugyanaz a technológia, színes kivitelben. Akkor jó, ha azt akarod, hogy a vendég észrevegye a pulton.",
+    price_unit:"· beüzemelve", p_cta:"Beüzemelést kérek",
+    price_note:"* Az ár tartalmazza az eszközt és a teljes beüzemelést. Több telephelyre kedvezmény kérésre.",
+    how_eyebrow:"Hogyan működik", how_h2:"Értékelés három másodperc alatt",
+    how_lead:"Nincs applikáció, nem kell címet begépelni — egy mozdulat, és a vendég az értékelő oldaladon van.",
+    s1_h:"Koppint vagy beolvas", s1_p:"A vendég a korongra tartja a telefont (NFC), vagy beolvassa a QR-kódot a kamerával.",
+    s2_h:"Nyílik az oldalad", s2_p:"Azonnal az értékelő oldalad nyílik meg a böngészőben — kerülőút nélkül.",
+    s3_h:"Ír egy véleményt", s3_p:"Aki amúgy is írna, azt már nem állítja meg a keresgélés. Ennyi a különbség.",
+    ben_eyebrow:"Miért így", ben_h2:"Egyszerű. Azonnali. Nem kell hozzáértés.",
+    b1_h:"Én állítom be", b1_p:"Helyszíni felszerelés, a saját értékelő oldaladra programozva. Neked nem kell fiókot bogarászni.",
+    b2_h:"Nem kell app", b2_p:"A telefon böngészőjében fut, letöltés és regisztráció nélkül.",
+    b3_h:"A link módosítható", b3_p:"Ha változik a profilod, újraírom a korongot.",
+    b4_h:"Minden telefonnal", b4_p:"NFC vagy QR — iPhone és Android, a régebbi készülékek is.",
+    rules_eyebrow:"Amit fontos tudni", rules_h2:"Ezt nem szabad szelektíven használni — és ezt előre elmondom.",
+    rules_p1:"A Google szabályai tiltják, hogy csak a válogatott vendégeknek add oda az értékelő linket, vagy hogy előre kitöltött csillagszámmal terelj. Ezt hívják review gatingnek, és a te profilodat sújtja: törölt értékelések, visszaesés a találatokban, rosszabb esetben felfüggesztés.",
+    rules_p2:"Ezért a korong mindenki számára egyformán elérhető helyre való — pultra, asztalra, a bejárathoz. Kitéve, láthatóan. Így nem kockáztatsz semmit.",
+    rules_p3:"Ezt a tájékoztatót minden vevőnek írásban adom át, fizetés előtt. Nem apró betű: ez a feltétele annak, hogy a dolog hosszú távon is működjön neked.",
+    cta_eyebrow:"Kapcsolat", cta_h2:"Kérd a beüzemelést",
+    cta_p:"Elérsz WhatsAppon, Viberen vagy SMS-ben — vagy e-mailben. Koppints a számra, és elmentheted a névjegyeid közé.",
+    save_hint:"Koppints a számra → mentsd el névjegyként (iOS és Android).", ch_call:"Hívás",
+    foot_right:"Ez a szolgáltatás nem a Google terméke, és nem áll kapcsolatban a Google LLC-vel. A „Google” a Google LLC bejegyzett védjegye, itt kizárólag a szolgáltatás leírására hivatkozunk rá.",
+    feat:{
+      common:["A TE értékelő oldaladra programozva","Beüzemelés és tesztelés az árban"],
+      black:["Kb. 10 cm átmérő, öntapadós hátlap","Matt fekete kivitel"],
+      color:["Kb. 10 cm átmérő, öntapadós hátlap","Választható szín"]
+    }
+  },
+  en:{
+    _lang:"en",
+    nav_products:"Options", nav_how:"How it works", nav_benefits:"Benefits", nav_contact:"Contact",
+    hero_pill:"On-site setup · NFC + QR",
+    hero_h1a:"More ", hero_h1b:"Google reviews", hero_h1c:" — set up for you.",
+    hero_lead:"You don't just get a sticker. I find your public business profile, program the NFC device to it, check that your page really opens, and install it on site. You pay for a working service, not a piece of plastic.",
+    hero_cta1:"See options", hero_cta2:"Get in touch",
+    hero_trust:"No app, no monthly fee, no sign-up.",
+    disc_sub:"Write a review", disc_tag:"Tap here", taphint:"Demo — tap the disc",
+    ph_open:"Opens", ph_btn:"Write a review",
+    prod_eyebrow:"The service", prod_h2:"Everything set up for you",
+    prod_lead:"Two versions, same service — only the disc looks different. The price includes the device and the full setup.",
+    p_black_tag:"Standard", p_black_name:"Review disc · Black",
+    p_black_desc:"Matte black self-adhesive disc, approx. 10 cm across. Discreet, looks right on a dark counter or a clean interior.",
+    p_color_tag:"Eye-catching", p_color_name:"Review disc · Colour",
+    p_color_desc:"Same technology in colour. Pick this if you want guests to actually notice it on the counter.",
+    price_unit:"· installed", p_cta:"Request setup",
+    price_note:"* Price includes the device and the full setup. Multi-location discount on request.",
+    how_eyebrow:"How it works", how_h2:"A review in three seconds",
+    how_lead:"No app, no typing an address — one motion and the guest is on your review page.",
+    s1_h:"Tap or scan", s1_p:"The guest holds their phone to the disc (NFC) or scans the QR code with the camera.",
+    s2_h:"Your page opens", s2_p:"Your review page opens straight away in the browser — no detours.",
+    s3_h:"They write a review", s3_p:"Someone who would write one anyway isn't stopped by the search. That's the whole difference.",
+    ben_eyebrow:"Why this way", ben_h2:"Simple. Instant. No technical skill needed.",
+    b1_h:"I set it up", b1_p:"On-site install, programmed to your own review page. You don't have to dig through any account.",
+    b2_h:"No app needed", b2_p:"Runs right in the phone browser, no download and no sign-up.",
+    b3_h:"The link can change", b3_p:"If your profile changes, I rewrite the disc.",
+    b4_h:"Works on any phone", b4_p:"NFC or QR — iPhone and Android, older handsets too.",
+    rules_eyebrow:"What you need to know", rules_h2:"This must not be used selectively — and I say so upfront.",
+    rules_p1:"Google's policies prohibit handing the review link only to selected guests, or steering them with a pre-filled star rating. It's called review gating, and it hits your profile: deleted reviews, a drop in rankings, in the worst case suspension.",
+    rules_p2:"So the disc belongs somewhere equally reachable by everyone — the counter, a table, by the entrance. Out in the open, visible. That way you risk nothing.",
+    rules_p3:"I hand this notice to every customer in writing, before payment. It isn't small print: it's the condition for this working for you long term.",
+    cta_eyebrow:"Contact", cta_h2:"Book your setup",
+    cta_p:"Reach me on WhatsApp, Viber or SMS — or by email. Tap the number to save it to your contacts.",
+    save_hint:"Tap the number → save it as a contact (iOS and Android).", ch_call:"Call",
+    foot_right:"This service is not a Google product and is not affiliated with Google LLC. \u201CGoogle\u201D is a registered trademark of Google LLC, referred to here only to describe the service.",
+    feat:{
+      common:["Programmed to YOUR review page","Setup and testing included"],
+      black:["Approx. 10 cm across, self-adhesive back","Matte black finish"],
+      color:["Approx. 10 cm across, self-adhesive back","Colour of your choice"]
+    }
+  }
+};
+
+const CK = '<svg class="ck" viewBox="0 0 24 24" fill="none"><circle cx="12" cy="12" r="11" fill="#E6F1ED"/><path d="M7 12.5l3.2 3.2L17 9" stroke="#0E6B55" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"/></svg>';
+
+function apply(lang){
+  const d = I18N[lang]; if(!d) return;
+  document.documentElement.lang = d._lang;
+  document.querySelectorAll('[data-i18n]').forEach(el=>{
+    const k = el.getAttribute('data-i18n');
+    if(d[k]!=null) el.textContent = d[k];
+  });
+  document.querySelectorAll('[data-feat]').forEach(ul=>{
+    const key = ul.getAttribute('data-feat');
+    const items = [...(d.feat[key]||[]), ...d.feat.common];
+    ul.innerHTML = items.map(t=>'<li>'+CK+'<span>'+t+'</span></li>').join('');
+  });
+  document.querySelectorAll('.lang button').forEach(b=>{
+    b.classList.toggle('active', b.getAttribute('data-lang')===lang);
+  });
+}
+
+document.querySelectorAll('.lang button').forEach(b=>{
+  b.addEventListener('click', ()=> apply(b.getAttribute('data-lang')));
+});
+
+document.querySelectorAll('a[href^="#"]').forEach(a=>{
+  a.addEventListener('click', e=>{
+    const t = document.querySelector(a.getAttribute('href'));
+    if(t){ e.preventDefault(); t.scrollIntoView({behavior:'smooth'}); }
+  });
+});
+
+/* contact wiring: number tap → vCard download, plus channel links */
+(function(){
+  const waNum = CONTACT.e164.replace(/[^0-9]/g,'');
+  const vcard = ['BEGIN:VCARD','VERSION:3.0','FN:'+CONTACT.name,
+                 'TEL;TYPE=CELL:'+CONTACT.e164,'EMAIL:'+CONTACT.email,'END:VCARD'].join('\n');
+  const vhref = 'data:text/vcard;charset=utf-8,'+encodeURIComponent(vcard);
+  const set=(id,href)=>{const el=document.getElementById(id); if(el) el.setAttribute('href',href);};
+  const num = document.getElementById('c-num');
+  if(num){ num.setAttribute('href', vhref); num.setAttribute('download','NulladikFazis.vcf'); num.setAttribute('title', CONTACT.display); }
+  const nt = document.getElementById('c-num-txt'); if(nt) nt.textContent = CONTACT.display;
+  set('c-call','tel:'+CONTACT.e164);
+  set('c-wa','https://wa.me/'+waNum);
+  set('c-viber','viber://chat?number='+encodeURIComponent(CONTACT.e164));
+  set('c-msg','sms:'+CONTACT.e164);
+  set('c-mail','mailto:'+CONTACT.email+'?subject=' + encodeURIComponent('Értékelő pont — beüzemelés'));
+})();
+
+/* hero disc demo */
+(function(){
+  const disc=document.getElementById('disc'), stage=document.getElementById('stage');
+  if(!disc||!stage) return;
+  disc.addEventListener('click',function(){
+    disc.classList.remove('tapped'); void disc.offsetWidth;
+    disc.classList.add('tapped'); stage.classList.add('open');
+  });
+})();
+
+apply('hu');
+</script>
+</body>
+</html>
